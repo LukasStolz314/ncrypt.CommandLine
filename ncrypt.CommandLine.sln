@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32602.201
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ncrypt.CommandLine", "ncrypt.CommandLine\ncrypt.CommandLine.csproj", "{83ACC2C8-9437-4A38-8276-F4728ADF219A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ncrypt.Library", "ncrypt.Library\ncrypt.Library.csproj", "{3C0385FF-1189-4FBD-BB02-EC3C5D11AB7D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{83ACC2C8-9437-4A38-8276-F4728ADF219A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83ACC2C8-9437-4A38-8276-F4728ADF219A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83ACC2C8-9437-4A38-8276-F4728ADF219A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83ACC2C8-9437-4A38-8276-F4728ADF219A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C0385FF-1189-4FBD-BB02-EC3C5D11AB7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C0385FF-1189-4FBD-BB02-EC3C5D11AB7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C0385FF-1189-4FBD-BB02-EC3C5D11AB7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C0385FF-1189-4FBD-BB02-EC3C5D11AB7D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9A254DCB-ADAF-468A-B7EF-B52A9AB4C293}
+	EndGlobalSection
+EndGlobal
