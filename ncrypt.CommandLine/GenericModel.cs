@@ -30,4 +30,14 @@ internal class GenericModel
 
     public String ServiceOptionName => ServiceType
         .GetCustomAttribute<Service>()?.OptionName ?? String.Empty;
+
+    public String? GetActionOptionName(MethodInfo action) =>
+        action.GetCustomAttribute<ActionCommand>()?.OptionName;
+
+    public String? GetActionOptionDescription(MethodInfo action) =>
+        action.GetCustomAttribute<ActionCommand>()?.OptionDescription;
+
+    public MethodInfo? GetActionByOptionName(String optionName) =>
+        ServiceActions.Single(a => a.Name.ToLower().Equals(optionName) ||
+        (a.GetCustomAttribute<ActionCommand>()!.OptionName ?? String.Empty).Equals(optionName));
 }

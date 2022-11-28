@@ -2,7 +2,7 @@
   "profiles": {
     "ncrypt.CommandLine": {
       "commandName": "Project",
-      "commandLineArgs": "abc --b64-encode"
+      "commandLineArgs": "YWJjZA== --b64-decode"
     }
   }
 }

@@ -10,4 +10,8 @@ public class Service : Attribute
     }
 }
 
-public class ActionCommand : Attribute { }
+public class ActionCommand : Attribute
+{
+    public String OptionName { get; set; }
+    public String OptionDescription { get; set; }
+}

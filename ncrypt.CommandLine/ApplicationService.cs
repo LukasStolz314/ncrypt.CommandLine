@@ -29,10 +29,29 @@ internal class ApplicationService
         {
             foreach (var action in model.ServiceActions)
             {
-                var aliases = new String[] { $"--{model.ServiceOptionName}-{action.Name.ToLower()}" };
+                var actionOptionName = model.GetActionOptionName(action) ?? action.Name.ToLower();
+                var aliases = new String[] { $"--{model.ServiceOptionName}-{actionOptionName}" };
 
-                var serviceName = model.ServiceType.Name.Replace("Service", "");
-                var description = $"Implementation of {serviceName}";
+                var serviceName = model.ServiceType.Name.Replace("Service", "");                
+                var description = model.GetActionOptionDescription(action) ??
+                    $"Implementation of {serviceName} {action.Name}";
+
+                var parameters = action.GetParameters().Select(p => p.Name ?? String.Empty);
+                var parameterNames = " <";
+
+                foreach(var parameter in parameters)
+                {
+                    if (parameter.ToLower().Equals("input"))
+                        continue;
+
+                    parameterNames += $"{parameter} | ";
+                }
+                
+                if(parameterNames.Length > 2)
+                    parameterNames = parameterNames.Substring(0, parameterNames.Length - 3);
+                parameterNames += ">";
+
+                description += parameterNames;
 
                 var option = new Option<Boolean>(aliases, description);
 
@@ -43,28 +62,41 @@ internal class ApplicationService
         return result;
     }
 
-    internal async Task Solve(InvocationContext context, List<GenericModel> models)
+    internal void Solve(InvocationContext context, List<GenericModel> models)
     {
+        // Gain options choosen and input string
         var children = context.ParseResult.CommandResult.Children;
-        var options = children.OfType<OptionResult>().ToList();
-        var inputArgument = children.OfType<ArgumentResult>().First(a => a.Symbol.Name.Equals("Input"));
-        var result = inputArgument.Tokens.First().Value;
+        var options = children.OfType<OptionResult>();
+        var inputArgument = children.OfType<ArgumentResult>()
+            .First(a => a.Symbol.Name.Equals("Input"));
+
+        // Set input string as first result
+        var result = inputArgument.Tokens.FirstOrDefault()?.Value;
 
         foreach(var option in options)
         {
-            String serviceOptionName = option.Token!.Value.Remove(0, 2).Split('-').First();
-            String actionName = option.Token!.Value.Remove(0, 2).Split('-').Last();
+            GenericModel model;
+            MethodInfo? action;
+            try
+            {
+                // Reproduce service and action name from option flag
+                String serviceOptionName = option.Token!.Value.Remove(0, 2).Split('-').First();
+                String actionOptionName = option.Token!.Value.Remove(0, 2).Split('-').Last();
 
-            var model = models.Single(m => m.ServiceOptionName.Equals(serviceOptionName));
-            var action = model.ServiceActions.Single(a => a.Name.ToLower().Equals(actionName));
+                // Get reflection models
+                model = models.Single(m => m.ServiceOptionName.Equals(serviceOptionName));
+                action = model.GetActionByOptionName(actionOptionName);
+            }
+            catch (InvalidOperationException e) { continue; }
 
+            // Ask user for parameters values
             var actionParameters = action.GetParameters();
             List<Object> paramList = new(); 
             foreach(var param in actionParameters)
             {
                 if (param.Name!.Equals("input"))
                 {
-                    paramList.Add(result);
+                    paramList.Add(result ?? String.Empty);
                     continue;
                 }
 
@@ -74,10 +106,34 @@ internal class ApplicationService
                 paramList.Add(input ?? String.Empty);
             }
 
+            // Create service instance and invoke action
             var instance = Activator.CreateInstance(model.ServiceType);
             result = (String) (action.Invoke(instance, paramList.ToArray()) ?? String.Empty);
         }
 
-        Console.WriteLine($"Ergebnis: {result}");
+        // Print result
+        Func<OptionResult, Boolean> outputFunc = (o => 
+            o.Symbol.Name.Equals("output") || o.Symbol.Name.Equals("o"));
+
+        if(options.Any(outputFunc))
+        {
+            var fi = new FileInfo(options.First(outputFunc).Tokens.First().Value);
+            try
+            {
+                using (StreamWriter sw = fi.AppendText())
+                {
+                    sw.WriteLine(result);
+                }
+            }
+            catch(DirectoryNotFoundException e) 
+            {
+                Console.WriteLine("Not able to create file"); 
+            }
+        }
+        else
+        {
+            Console.WriteLine($"Ergebnis: ");
+            Console.WriteLine(result);
+        }
     }
 }

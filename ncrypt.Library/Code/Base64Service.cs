@@ -16,8 +16,7 @@ public class Base64Service
     [ActionCommand]
     public String Decode(String input)
     {
-        var bytes = Converter.FromHex(input, ConvertType.BASE64);
-        var result = Convert.FromBase64String(bytes);
-        return Convert.ToHexString(result);
+        var result = Convert.FromBase64String(input);
+        return Encoding.ASCII.GetString(result);
     }
 }
