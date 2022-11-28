@@ -1,14 +1,16 @@
-﻿namespace ncrypt.Library.Code;
+﻿using System.Text;
+
+namespace ncrypt.Library.Code;
 
 [Service("b64")]
 public class Base64Service
 {
     [ActionCommand]
-    public String Encode(String input, String a, String b)
+    public String Encode(String input)
     {
-        var bytes = Convert.FromHexString(input);
+        var bytes = Encoding.ASCII.GetBytes(input);
         var result = Convert.ToBase64String(bytes);
-        return Converter.ToHex(result, ConvertType.BASE64);
+        return result;
     }
 
     [ActionCommand]

@@ -18,6 +18,6 @@ foreach(var option in options)
     rootCommand.AddOption(option);
 }
 
-rootCommand.SetHandler((InvocationContext context) => new ApplicationService().Solve(context));
+rootCommand.SetHandler((InvocationContext context) => new ApplicationService().Solve(context, models));
 
 await rootCommand.InvokeAsync(args);
