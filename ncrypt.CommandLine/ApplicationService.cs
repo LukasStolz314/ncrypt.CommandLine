@@ -10,14 +10,27 @@ internal class ApplicationService
 {
     internal List<GenericModel> Load()
     {
-        List<GenericModel> result = new();
+        List<Type> services = new();
 
         Assembly lib = Assembly.Load("ncrypt.Library");
-        result = lib.GetTypes()
+        services = lib.GetTypes()
             .Where(t => t.CustomAttributes
                 .Any(a => a.AttributeType == typeof(Service))
-            ).Select(t => new GenericModel(t)).ToList();
+            ).ToList();
 
+        String homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        String path = Path.Combine(homePath, "Downloads", "PluginServices");
+
+        Directory.CreateDirectory(path);
+
+        foreach (String dll in Directory.GetFiles(path, "*.dll"))
+        {
+            var types = Assembly.LoadFile(dll).GetTypes();
+            var selected = types.Where(t => t.CustomAttributes.Any(a => a.AttributeType.Name == "Service"));
+            services.AddRange(selected);
+        }
+        
+        List<GenericModel> result = services.Select(t => new GenericModel(t)).ToList();
         return result;
     }
 
@@ -115,7 +128,10 @@ internal class ApplicationService
         Func<OptionResult, Boolean> outputFunc = (o => 
             o.Symbol.Name.Equals("output") || o.Symbol.Name.Equals("o"));
 
-        if(options.Any(outputFunc))
+        Func<OptionResult, Boolean> importFunc = (o =>
+            o.Symbol.Name.Equals("import") || o.Symbol.Name.Equals("i"));
+
+        if (options.Any(outputFunc))
         {
             var fi = new FileInfo(options.First(outputFunc).Tokens.First().Value);
             try
@@ -129,6 +145,15 @@ internal class ApplicationService
             {
                 Console.WriteLine("Not able to create file"); 
             }
+        }
+        else if (options.Any(importFunc))
+        {
+            String homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            String path = Path.Combine(homePath, "Downloads", "PluginServices");
+
+            Directory.CreateDirectory(path);
+            var file = new FileInfo(options.First(importFunc).Tokens.First().Value);
+            File.Copy(file.FullName, Path.Combine(path, file.Name));
         }
         else
         {

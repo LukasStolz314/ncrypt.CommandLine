@@ -18,6 +18,10 @@ var outputAliases = new String[] { "-o", "--output" };
 var outputOption = new Option<FileInfo?>(outputAliases, "Define output file");
 rootCommand.AddGlobalOption(outputOption);
 
+var importAliases = new String[] { "-i", "--import" };
+var importOption = new Option<FileInfo?>(importAliases, "Import custom service");
+rootCommand.AddGlobalOption(importOption);
+
 var options = _service.ModelsToOptions(models);
 
 foreach(var option in options)
