@@ -8,6 +8,16 @@ namespace ncrypt.CommandLine;
 
 internal class ApplicationService
 {
+    private String _homePath = String.Empty;
+    private String _pluginPath = String.Empty;
+
+    public ApplicationService()
+    {
+        _homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        _pluginPath = Path.Combine(_homePath, "AppData", "Roaming",
+                "ncrypt.CommandLine", "PluginServices");
+    }
+
     internal List<GenericModel> Load()
     {
         List<Type> services = new();
@@ -18,15 +28,14 @@ internal class ApplicationService
                 .Any(a => a.AttributeType == typeof(Service))
             ).ToList();
 
-        String homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        String path = Path.Combine(homePath, "Downloads", "PluginServices");
+        Directory.CreateDirectory(_pluginPath);
 
-        Directory.CreateDirectory(path);
-
-        foreach (String dll in Directory.GetFiles(path, "*.dll"))
+        foreach (String dll in Directory.GetFiles(_pluginPath, "*.dll"))
         {
             var types = Assembly.LoadFile(dll).GetTypes();
-            var selected = types.Where(t => t.CustomAttributes.Any(a => a.AttributeType.Name == "Service"));
+            var selected = types.Where(t => t.GetCustomAttributes().Any(
+                a => a.GetType() == typeof(Service)));
+
             services.AddRange(selected);
         }
         
@@ -84,7 +93,7 @@ internal class ApplicationService
             .First(a => a.Symbol.Name.Equals("Input"));
 
         // Set input string as first result
-        var result = inputArgument.Tokens.FirstOrDefault()?.Value;
+        var result = inputArgument.Tokens.FirstOrDefault()?.Value ?? String.Empty;
 
         foreach(var option in options)
         {
@@ -124,8 +133,15 @@ internal class ApplicationService
             result = (String) (action.Invoke(instance, paramList.ToArray()) ?? String.Empty);
         }
 
-        // Print result
-        Func<OptionResult, Boolean> outputFunc = (o => 
+        CheckForGlobalOptionsAndPrintResult(options, result);
+    }
+
+
+
+    internal void CheckForGlobalOptionsAndPrintResult(
+        IEnumerable<OptionResult> options, String result)
+    {
+        Func<OptionResult, Boolean> outputFunc = (o =>
             o.Symbol.Name.Equals("output") || o.Symbol.Name.Equals("o"));
 
         Func<OptionResult, Boolean> importFunc = (o =>
@@ -141,19 +157,16 @@ internal class ApplicationService
                     sw.WriteLine(result);
                 }
             }
-            catch(DirectoryNotFoundException e) 
+            catch (DirectoryNotFoundException e)
             {
-                Console.WriteLine("Not able to create file"); 
+                Console.WriteLine("Not able to create file");
             }
         }
         else if (options.Any(importFunc))
         {
-            String homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            String path = Path.Combine(homePath, "Downloads", "PluginServices");
-
-            Directory.CreateDirectory(path);
+            Directory.CreateDirectory(_pluginPath);
             var file = new FileInfo(options.First(importFunc).Tokens.First().Value);
-            File.Copy(file.FullName, Path.Combine(path, file.Name));
+            File.Copy(file.FullName, Path.Combine(_pluginPath, file.Name));
         }
         else
         {

@@ -19,8 +19,8 @@ internal class GenericModel
             if (_serviceActions is null || _serviceActions.Count == 0)
             {
                 _serviceActions = ServiceType.GetMethods()
-                    .Where(m => m.CustomAttributes
-                         .Any(a => a.AttributeType == typeof(ActionCommand))
+                    .Where(m => m.GetCustomAttributes()
+                        .Any(a => a.GetType() == typeof(ActionCommand))
                     ).ToList();
             }
 
