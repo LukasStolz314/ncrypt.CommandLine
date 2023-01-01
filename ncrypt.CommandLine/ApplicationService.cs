@@ -100,24 +100,28 @@ internal class ApplicationService
 
     internal void Solve(InvocationContext context, List<GenericModel> models)
     {
-        // Gain options choosen and input string
+        // Get context childrens and input string
         var children = context.ParseResult.CommandResult.Children;
-        var options = children.OfType<OptionResult>();
         var inputArgument = children.OfType<ArgumentResult>()
             .First(a => a.Symbol.Name.Equals("Input"));
+
+        // Get option sequence
+        var tokens = context.ParseResult.Tokens;
+        var optionTokens = tokens.Where(c => c.Type == TokenType.Option);
+        
 
         // Set input string as first result
         var result = inputArgument.Tokens.FirstOrDefault()?.Value ?? String.Empty;
 
-        foreach(var option in options)
+        foreach(var optionToken in optionTokens)
         {
             GenericModel model;
             MethodInfo? action;
             try
             {
                 // Reproduce service and action name from option flag
-                String serviceOptionName = option.Token!.Value.Remove(0, 2).Split('-').First();
-                String actionOptionName = option.Token!.Value.Remove(0, 2).Split('-').Last();
+                String serviceOptionName = optionToken.Value.Remove(0, 2).Split('-').First();
+                String actionOptionName = optionToken.Value.Remove(0, 2).Split('-').Last();
 
                 // Get reflection models
                 model = models.Single(m => m.ServiceOptionName.Equals(serviceOptionName));
@@ -146,6 +150,9 @@ internal class ApplicationService
             var instance = Activator.CreateInstance(model.ServiceType);
             result = (String) (action.Invoke(instance, paramList.ToArray()) ?? String.Empty);
         }
+
+        // Get options
+        var options = children.OfType<OptionResult>();
 
         CheckForGlobalOptionsAndPrintResult(options, result);
     }
