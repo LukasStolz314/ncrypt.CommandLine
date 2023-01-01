@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace ncrypt.CommandLine;
 
@@ -14,8 +15,21 @@ internal class ApplicationService
     public ApplicationService()
     {
         _homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        _pluginPath = Path.Combine(_homePath, "AppData", "Roaming",
+
+        if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            _pluginPath = Path.Combine(_homePath, "AppData", "Roaming",
                 "ncrypt.CommandLine", "PluginServices");
+        }
+        else if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            _pluginPath = Path.Combine(_homePath, "Library", "Application Support",
+                "ncrypt.CommandLine", "PluginServices");
+        }
+        else
+        {
+            throw new NotSupportedException("OS not supported yet");
+        }
     }
 
     internal List<GenericModel> Load()
